@@ -99,9 +99,9 @@ params:
       - image: myphoto2.jpg
         subtitle: my hobbies
         title: More about me
-        url: blogs/ipsum
+        url: blogs/hobby
       - image: weibo.jpg
-        subtitle: Welcome to subscribe my channel
+        subtitle: Welcome to subscribe to my channel
         title: My Chinese official blog
         url: https://weibo.com/u/6305718950
   #two:
