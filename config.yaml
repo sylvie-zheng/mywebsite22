@@ -87,7 +87,7 @@ params:
       - image: resume.jpg
         subtitle: Welcome to network through my e-mail or Linkedin
         title: My resume
-        url: blogs/resume
+        url:docs/resume.pdf
       - image: lbs.jpg
         subtitle: London Business School
         title: My school
