@@ -84,14 +84,14 @@ params:
         subtitle: Click here
         title: About me - professional data fanatic
         url: blogs/risk_return
+      - image: resume.jpg
+        subtitle: Welcome to network through my e-mail or Linkedin
+        title: My resume
+        url: file:///D:/Users/%E6%89%BE%E5%B7%A5%E4%BD%9C%E5%8A%A0%E6%B2%B9%EF%BC%81/CV%E5%87%86%E5%A4%87/%E5%92%A8%E8%AF%A2/CV%20for%20CV%20book/resume-Yiwei%20Zheng.pdf
       - image: lbs.jpg
         subtitle: London Business School
         title: My school
         url: https://www.london.edu/
-      - image: resume.jpg
-        subtitle: Welcome to network through my e-mail or Linkedin
-        title: My resume
-        url: blogs/magna
       - image: rcoding.jpeg
         subtitle: Immersed in coding and solving business problems
         title: R project
