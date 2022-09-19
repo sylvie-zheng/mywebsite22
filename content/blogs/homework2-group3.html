@@ -1,0 +1,558 @@
+---
+categories:  
+- ""    #the front matter should be like the one found in, e.g., blog2.md. It cannot be like the normal Rmd we used
+- ""
+date: "2021-09-30"
+description: R Project # the title that will show up once someone gets to this page
+draft: false
+#image: spices.jpg # save picture in \static\img\blogs. Acceptable formats= jpg, jpeg, or png . Your iPhone pics wont work
+
+keywords: ""
+slug: homework2-group3 # slug is the shorthand URL address... no spaces plz
+title: R Project
+---
+
+
+
+<div id="climate-change-and-temperature-anomalies" class="section level1">
+<h1>Climate change and temperature anomalies</h1>
+<pre class="r"><code>weather &lt;- 
+  read_csv(&quot;https://data.giss.nasa.gov/gistemp/tabledata_v4/NH.Ts+dSST.csv&quot;, 
+           skip = 1, 
+           na = &quot;***&quot;)</code></pre>
+<pre class="r"><code># SELECT YEAR, MONTHS AND PIVOT LONGER
+weather %&gt;% 
+  select(1:13) %&gt;% 
+  pivot_longer(2:13, names_to = &quot;month&quot;, values_to = &quot;delta&quot;) -&gt; tidyweather</code></pre>
+<div id="plotting-information" class="section level2">
+<h2>Plotting Information</h2>
+<pre class="r"><code>tidyweather &lt;- tidyweather %&gt;%
+  mutate(date = ymd(paste(as.character(Year), month, &quot;1&quot;)),
+         month = month(date, label=TRUE),
+         Year = year(date))
+
+ggplot(tidyweather, aes(x=date, y = delta))+
+  geom_point()+
+  geom_smooth(color=&quot;red&quot;) +
+  theme_bw() +
+  labs (
+    title = &quot;Weather Anomalies&quot;,
+    x = &quot;Year&quot;,
+    y = &quot;Delta&quot;
+  )</code></pre>
+<p><img src="/blogs/homework2-group3_files/figure-html/scatter_plot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(tidyweather, aes(x=date, y = delta))+
+  geom_point()+
+  geom_smooth(color=&quot;red&quot;) +
+  facet_wrap(~month) +
+  theme_bw() +
+  labs (
+    title = &quot;Weather Anomalies&quot;,
+    x = &quot;Year&quot;,
+    y = &quot;Delta&quot;
+  )</code></pre>
+<p><img src="/blogs/homework2-group3_files/figure-html/facet_wrap-1.png" width="648" style="display: block; margin: auto;" /></p>
+<blockquote>
+<p>There is no apparent difference between the effects of increasing
+temperature in monthly data. January and February seem to represent
+the strongest change, but it does not vary significantly from other
+months.</p>
+</blockquote>
+<pre class="r"><code>comparison &lt;- tidyweather %&gt;% 
+  filter(Year&gt;= 1881) %&gt;%     #remove years prior to 1881
+  #create new variable &#39;interval&#39;, and assign values based on criteria below:
+  mutate(interval = case_when(
+    Year %in% c(1881:1920) ~ &quot;1881-1920&quot;,
+    Year %in% c(1921:1950) ~ &quot;1921-1950&quot;,
+    Year %in% c(1951:1980) ~ &quot;1951-1980&quot;,
+    Year %in% c(1981:2010) ~ &quot;1981-2010&quot;,
+    TRUE ~ &quot;2011-present&quot;
+  ))</code></pre>
+<pre class="r"><code>comparison %&gt;% 
+  ggplot(aes(x = delta, fill = interval, color = interval)) +
+  geom_density(alpha = 0.3) +
+  labs (
+    title = &quot;Weather Delta by Decade&quot;,
+    x = &quot;Delta&quot;,
+    y = &quot;Density&quot;,
+    fill = &quot;Decade&quot;,
+    color = &quot;Decade&quot;
+  )</code></pre>
+<p><img src="/blogs/homework2-group3_files/figure-html/density_plot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#creating yearly averages
+average_annual_anomaly &lt;- tidyweather %&gt;% 
+  group_by(Year) %&gt;%   #grouping data by Year
+  # creating summaries for mean delta 
+  # use `na.rm=TRUE` to eliminate NA (not available) values 
+  summarise(mean_delta = mean(delta, na.rm=TRUE)) 
+
+average_annual_anomaly %&gt;% 
+  ggplot(aes(x=Year, y=mean_delta)) +
+  geom_point(aes(color=mean_delta&gt;0)) + # DRAWING POINTS ABOVE ZERO A DIFFERENT COLOUR
+  geom_smooth(method = &quot;loess&quot;, color=&quot;black&quot;) +
+  theme_bw() + 
+  labs(
+    title = &quot;Weather Delta average by Year&quot;,
+    x = &quot;Year&quot;,
+    y = &quot;Mean Delta&quot;, 
+    color = &quot;Above Zero&quot;
+  )</code></pre>
+<p><img src="/blogs/homework2-group3_files/figure-html/averaging-1.png" width="648" style="display: block; margin: auto;" /></p>
+</div>
+<div id="confidence-interval-for-delta" class="section level2">
+<h2>Confidence Interval for <code>delta</code></h2>
+<div id="ci-using-formula" class="section level4">
+<h4>CI using formula</h4>
+<pre class="r"><code>formula_ci &lt;- comparison %&gt;% 
+
+  # choose the interval 2011-present
+  filter(Year &gt;= 2011) %&gt;% 
+  group_by(Year) %&gt;% 
+  summarise(
+    mean_delta = mean(delta),
+    sd_delta = sd(delta),
+    count = n(),
+    # We&#39;re choosing a 95% confidence interval:
+    t_critical = qt(0.975, count-1),
+    se_delta = sd(delta/sqrt(count)),
+    margin_of_error = t_critical*se_delta,
+    delta_low  = mean_delta - margin_of_error,
+    delta_high = mean_delta + margin_of_error
+  )
+  
+  # calculate summary statistics for temperature deviation (delta) 
+  # calculate mean, SD, count, SE, lower/upper 95% CI
+  # what dplyr verb will you use? 
+
+#print out formula_CI
+formula_ci</code></pre>
+<pre><code>## # A tibble: 12 × 9
+##     Year mean_delta sd_delta count t_critical se_delta margin_…¹ delta…² delta…³
+##    &lt;dbl&gt;      &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;      &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+##  1  2011      0.745    0.113    12       2.20   0.0327    0.0720   0.673   0.817
+##  2  2012      0.815    0.179    12       2.20   0.0517    0.114    0.701   0.929
+##  3  2013      0.8      0.118    12       2.20   0.0340    0.0749   0.725   0.875
+##  4  2014      0.92     0.145    12       2.20   0.0420    0.0924   0.828   1.01 
+##  5  2015      1.18     0.178    12       2.20   0.0515    0.113    1.06    1.29 
+##  6  2016      1.31     0.333    12       2.20   0.0961    0.212    1.10    1.52 
+##  7  2017      1.18     0.226    12       2.20   0.0653    0.144    1.03    1.32 
+##  8  2018      1.04     0.137    12       2.20   0.0396    0.0871   0.950   1.12 
+##  9  2019      1.21     0.153    12       2.20   0.0441    0.0970   1.11    1.31 
+## 10  2020      1.35     0.225    12       2.20   0.0648    0.143    1.21    1.50 
+## 11  2021      1.14     0.117    12       2.20   0.0339    0.0746   1.06    1.21 
+## 12  2022     NA       NA        12       2.20  NA        NA       NA      NA    
+## # … with abbreviated variable names ¹​margin_of_error, ²​delta_low, ³​delta_high</code></pre>
+<blockquote>
+<p>In order to calculate the confidence intervals, we have calculated for
+every year many summary statistics including mean, SD, SE and sample
+size. Using these summary statistics we have calculated the t-Student
+distribution critical value, and multiplied the <code>t_critical</code> by the
+standard error to get the final margin of error. Finally we add and
+subtract the margin of error to the mean to get the limits of the
+interval. In order to fully understand the data we have collected, we
+have come up with the following visualization of the mean and
+confidence intervals:</p>
+</blockquote>
+<pre class="r"><code>formula_ci %&gt;% 
+  mutate(Year = as.factor(Year)) %&gt;% 
+  na.omit() %&gt;% 
+  ggplot(aes(color = Year)) +
+  geom_pointrange(aes(x=Year, y=mean_delta, ymax=delta_high, ymin=delta_low)) +
+  theme_bw() + 
+  theme(legend.position = &quot;none&quot;) +
+  labs(
+    title = &quot;Weather Delta range by Year&quot;,
+    subtitle = &quot;NASA Weater Data&quot;,
+    x = &quot;Year&quot;,
+    y = &quot;Delta range&quot;, 
+    color = NULL
+  )</code></pre>
+<p><img src="/blogs/homework2-group3_files/figure-html/unnamed-chunk-1-1.png" width="648" style="display: block; margin: auto;" /></p>
+<blockquote>
+<p>The visualization shows an increase in the mean over the years,
+reaching a first maximum in 2016, and an even higher maximum mean in
+2020. For years with a higher mean delta, the confidence intervals
+seem to increase as well. With the current samples and intervals, we
+cannot say for sure that the mean delta in year 2016 was higher than
+the mean delta in 2017 for instance, but we can be sure with 95%
+confidence that 2011 was lower than 2016.</p>
+</blockquote>
+</div>
+<div id="ci-using-formula-for-all-years" class="section level4">
+<h4>CI using formula (for all years)</h4>
+<p>Since there are not enough data points every year, the confidence
+intervals are very large and vary a lot by year. The total confidence
+interval for the entire period is as follows:</p>
+<pre class="r"><code>formula_ci_interval &lt;- comparison %&gt;% 
+
+  # choose the interval 2011-present
+  filter(Year &gt;= 2011) %&gt;% 
+  na.omit() %&gt;% 
+  group_by(interval) %&gt;% 
+  summarise(
+    mean_delta = mean(delta),
+    sd_delta = sd(delta),
+    count = n(),
+    # We&#39;re choosing a 95% confidence interval:
+    t_critical = qt(0.975, count-1),
+    se_delta = sd(delta/sqrt(count)),
+    margin_of_error = t_critical*se_delta,
+    delta_low  = mean_delta - margin_of_error,
+    delta_high = mean_delta + margin_of_error
+  )
+
+#print out formula_CI
+formula_ci_interval %&gt;% select(delta_low, delta_high)</code></pre>
+<pre><code>## # A tibble: 1 × 2
+##   delta_low delta_high
+##       &lt;dbl&gt;      &lt;dbl&gt;
+## 1      1.02       1.11</code></pre>
+</div>
+<div id="ci-using-bootstrapping" class="section level4">
+<h4>CI using bootstrapping</h4>
+<pre class="r"><code>boot_dist &lt;- comparison %&gt;%
+  # choose the interval 2011-present
+  filter(Year &gt;= 2011) %&gt;%
+  mutate(Year = as.factor(Year)) %&gt;%
+  specify(response=delta) %&gt;%
+  generate(reps=1000, type=&quot;bootstrap&quot;) %&gt;% 
+  calculate(stat = &quot;mean&quot;)
+
+boot_dist %&gt;%
+  # Calculate the confidence interval around the point estimate
+  get_confidence_interval(
+    # At the 95% confidence level; percentile method
+    level = 0.95
+  )</code></pre>
+<pre><code>## # A tibble: 1 × 2
+##   lower_ci upper_ci
+##      &lt;dbl&gt;    &lt;dbl&gt;
+## 1     1.02     1.11</code></pre>
+</div>
+</div>
+</div>
+<div id="bidens-approval-margins" class="section level1">
+<h1>Biden’s Approval Margins</h1>
+<pre class="r"><code># Import approval polls data directly off fivethirtyeight website
+approval_polllist &lt;- read_csv(&#39;https://projects.fivethirtyeight.com/biden-approval-data/approval_polllist.csv&#39;) 
+
+glimpse(approval_polllist)</code></pre>
+<pre><code>## Rows: 4,572
+## Columns: 22
+## $ president           &lt;chr&gt; &quot;Joe Biden&quot;, &quot;Joe Biden&quot;, &quot;Joe Biden&quot;, &quot;Joe Biden&quot;…
+## $ subgroup            &lt;chr&gt; &quot;All polls&quot;, &quot;All polls&quot;, &quot;All polls&quot;, &quot;All polls&quot;…
+## $ modeldate           &lt;chr&gt; &quot;9/19/2022&quot;, &quot;9/19/2022&quot;, &quot;9/19/2022&quot;, &quot;9/19/2022&quot;…
+## $ startdate           &lt;chr&gt; &quot;1/19/2021&quot;, &quot;1/19/2021&quot;, &quot;1/20/2021&quot;, &quot;1/20/2021&quot;…
+## $ enddate             &lt;chr&gt; &quot;1/21/2021&quot;, &quot;1/21/2021&quot;, &quot;1/21/2021&quot;, &quot;1/21/2021&quot;…
+## $ pollster            &lt;chr&gt; &quot;Morning Consult&quot;, &quot;Rasmussen Reports/Pulse Opinio…
+## $ grade               &lt;chr&gt; &quot;B&quot;, &quot;B&quot;, &quot;B-&quot;, &quot;B&quot;, &quot;B&quot;, &quot;B+&quot;, &quot;B+&quot;, &quot;B&quot;, &quot;B-&quot;, &quot;…
+## $ samplesize          &lt;dbl&gt; 15000, 1500, 1115, 1993, 15000, 1516, 941, 15000, …
+## $ population          &lt;chr&gt; &quot;a&quot;, &quot;lv&quot;, &quot;a&quot;, &quot;rv&quot;, &quot;a&quot;, &quot;a&quot;, &quot;rv&quot;, &quot;a&quot;, &quot;rv&quot;, &quot;…
+## $ weight              &lt;dbl&gt; 0.2594, 0.3382, 1.1014, 0.0930, 0.2333, 1.2454, 1.…
+## $ influence           &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,…
+## $ approve             &lt;dbl&gt; 50.0, 48.0, 55.5, 56.0, 51.0, 45.0, 63.0, 52.0, 58…
+## $ disapprove          &lt;dbl&gt; 28.0, 45.0, 31.6, 31.0, 28.0, 28.0, 37.0, 29.0, 32…
+## $ adjusted_approve    &lt;dbl&gt; 49.4, 49.1, 54.6, 55.4, 50.4, 46.0, 59.4, 51.4, 57…
+## $ adjusted_disapprove &lt;dbl&gt; 30.9, 40.3, 32.4, 33.9, 30.9, 29.0, 38.4, 31.9, 32…
+## $ multiversions       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ tracking            &lt;lgl&gt; TRUE, TRUE, NA, NA, TRUE, NA, NA, TRUE, NA, TRUE, …
+## $ url                 &lt;chr&gt; &quot;https://morningconsult.com/form/global-leader-app…
+## $ poll_id             &lt;dbl&gt; 74272, 74247, 74248, 74246, 74273, 74327, 74256, 7…
+## $ question_id         &lt;dbl&gt; 139491, 139395, 139404, 139394, 139492, 139570, 13…
+## $ createddate         &lt;chr&gt; &quot;1/28/2021&quot;, &quot;1/22/2021&quot;, &quot;1/22/2021&quot;, &quot;1/22/2021&quot;…
+## $ timestamp           &lt;chr&gt; &quot;09:58:31 19 Sep 2022&quot;, &quot;09:58:31 19 Sep 2022&quot;, &quot;0…</code></pre>
+<pre class="r"><code># Use `lubridate` to fix dates, as they are given as characters.</code></pre>
+<div id="create-a-plot" class="section level2">
+<h2>Create a plot</h2>
+<pre class="r"><code>test_data &lt;- approval_polllist %&gt;% 
+  select(&#39;president&#39;, &#39;enddate&#39;, &#39;approve&#39;, &#39;disapprove&#39;, &#39;subgroup&#39;) %&gt;% 
+  filter(president==&#39;Joe Biden&#39;) %&gt;% 
+  mutate(net_approval = approve-disapprove) %&gt;% 
+  mutate(date = mdy(enddate)) %&gt;% 
+  select(-enddate) %&gt;% 
+  filter(year(date)==2022) %&gt;% 
+  mutate(week_date = week(date)) %&gt;% 
+  group_by(week_date, subgroup) %&gt;% 
+  summarize(mean_net_approval = mean(net_approval), 
+            sd_net_approval = sd(net_approval), 
+            count=n(),
+            t_critical = qt(0.95, count-1),
+            se_net_approval = sd(net_approval)/sqrt(count),
+            margin_of_error = t_critical * se_net_approval, 
+            net_approval_high = mean_net_approval + margin_of_error, 
+            net_approval_low = mean_net_approval - margin_of_error) #%&gt;% 
+  
+
+  ggplot(test_data, aes(x=week_date, y=mean_net_approval, color=subgroup, fill=subgroup)) +
+  geom_line() + 
+  geom_ribbon(aes(ymin = net_approval_low, ymax = net_approval_high), alpha = 0.1) +
+  #theme_minimal() +
+  labs(title = &quot;Biden&#39;s Net Approval Ratings in 2022&quot;, subtitle = &quot;Weekly Data, Approve - Disapprove, %&quot;, 
+       x=&#39;Week in 2022&#39;, y=&#39;&#39;, caption = &quot;Source: https://projects.fivethirtyeight.com/biden-approval-data/&quot;) +
+  theme(legend.position = &#39;none&#39;) +
+  facet_grid(vars(subgroup))</code></pre>
+<p><img src="/blogs/homework2-group3_files/figure-html/approval_ratings-1.png" width="648" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="challenge-1-excess-rentals-in-tfl-bike-sharing" class="section level1">
+<h1>Challenge 1: Excess rentals in TfL bike sharing</h1>
+<p>Recall the TfL data on how many bikes were hired every single day. We
+can get the latest data by running the following
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</p>
+<pre class="r"><code>url &lt;- &quot;https://data.london.gov.uk/download/number-bicycle-hires/ac29363e-e0cb-47cc-a97a-e216d900a6b0/tfl-daily-cycle-hires.xlsx&quot;
+
+# Download TFL data to temporary file
+httr::GET(url, write_disk(bike.temp &lt;- tempfile(fileext = &quot;.xlsx&quot;)))</code></pre>
+<pre><code>## Response [https://airdrive-secure.s3-eu-west-1.amazonaws.com/london/dataset/number-bicycle-hires/2022-09-06T12%3A41%3A48/tfl-daily-cycle-hires.xlsx?X-Amz-Algorithm=AWS4-HMAC-SHA256&amp;X-Amz-Credential=AKIAJJDIMAIVZJDICKHA%2F20220919%2Feu-west-1%2Fs3%2Faws4_request&amp;X-Amz-Date=20220919T144132Z&amp;X-Amz-Expires=300&amp;X-Amz-Signature=a8a78c5ce136bcb84080e2ff507b71ead92ea81f4427ca4e9863f2ec825eb691&amp;X-Amz-SignedHeaders=host]
+##   Date: 2022-09-19 14:41
+##   Status: 200
+##   Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+##   Size: 180 kB
+## &lt;ON DISK&gt;  D:\TMP\RtmpATRL2i\file64246ed6140c.xlsx</code></pre>
+<pre class="r"><code># Use read_excel to read it as dataframe
+bike0 &lt;- read_excel(bike.temp,
+                   sheet = &quot;Data&quot;,
+                   range = cell_cols(&quot;A:B&quot;))
+
+# change dates to get year, month, and week
+bike &lt;- bike0 %&gt;% 
+  clean_names() %&gt;% 
+  rename (bikes_hired = number_of_bicycle_hires) %&gt;% 
+  mutate (year = year(day),
+          month = lubridate::month(day, label = TRUE),
+          week = isoweek(day))</code></pre>
+<p>However, the challenge I want you to work on is to reproduce the
+following two graphs.</p>
+<pre class="r"><code># knitr::include_graphics(here::here(&quot;images&quot;, &quot;tfl_monthly.png&quot;), error = FALSE)</code></pre>
+<pre class="r"><code>bike2 &lt;- bike %&gt;% 
+  filter(year&gt;2015) %&gt;% 
+  group_by(month,year) %&gt;% 
+  mutate(month=match(month,month.abb)) %&gt;% 
+  summarize(monthly_mean = mean(bikes_hired))
+  #mutate(lag_mean = lag(monthly_mean))
+    
+bike_2016_to_2019 &lt;-bike %&gt;% 
+    filter(2015&lt;year &amp; year&lt;2020) %&gt;% 
+    group_by(month) %&gt;% 
+    mutate(month=match(month,month.abb)) %&gt;% 
+    summarize(monthly_mean_2016_2019 = mean(bikes_hired))
+
+bike_merged&lt;-merge(x=bike2,y=bike_2016_to_2019,by=&quot;month&quot;) %&gt;% 
+  filter(year&gt;2016)
+
+bike_longer&lt;-bike_merged %&gt;% 
+              pivot_longer(cols=3:4,
+                           names_to=&quot;type&quot;,
+                           values_to=&quot;n&quot;)
+
+
+ggplot(data=bike_merged, aes(x=month)) +
+  
+  geom_line(aes(y=monthly_mean)) +
+  geom_line(aes(y=monthly_mean_2016_2019), colour=&#39;blue&#39;,size=1) +
+  geom_ribbon(aes(x=month, 
+                   ymin = monthly_mean, 
+                   ymax = pmax(monthly_mean,monthly_mean_2016_2019), 
+                   fill = &quot;red&quot;), 
+                   alpha=0.1) +
+  geom_ribbon(aes(x=month, 
+                   ymin = monthly_mean_2016_2019, 
+                   ymax = pmax(monthly_mean,monthly_mean_2016_2019), 
+                   fill = &quot;green&quot;), 
+                   alpha=0.1) +
+
+    scale_x_continuous(breaks = seq_along(month.abb), 
+                        labels = month.abb) +  
+  
+    scale_fill_manual(values=c(&quot;green&quot;, &quot;red&quot;), name=&quot;fill&quot;) +
+ 
+    guides(linetype = &quot;none&quot;, fill = &quot;none&quot;) +
+    labs(title = &quot;Monthly changes in Tfl bike rentals&quot;, subtitle = &quot;Change from monthly average shown in blue and calculated between 2016-2019&quot;, 
+         x=&#39;&#39;, y=&#39;Bike Rentals&#39;, caption = &quot;Source: Tfl, London, Data Store&quot;) +
+
+    theme(legend.position = &#39;none&#39;) +
+    facet_wrap(~year)+
+    theme_minimal()</code></pre>
+<p><img src="/blogs/homework2-group3_files/figure-html/monthly_change-1.png" width="648" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>bike3 &lt;- bike %&gt;% 
+  mutate(month=match(month,month.abb)) %&gt;% 
+  filter(!(month==1 &amp; week == 52)) %&gt;% 
+  filter(year&gt;2015) %&gt;% 
+  group_by(week,year) %&gt;% 
+  summarize(weekly_mean = mean(bikes_hired))
+
+
+bike_weekly_2016_to_2019 &lt;- bike %&gt;%
+    filter(2015&lt;year &amp; year&lt;2020) %&gt;%
+    group_by(week) %&gt;%
+    summarize(weekly_mean_2016_2019 = mean(bikes_hired))
+
+bike_weekly_merged&lt;-merge(x=bike3,y=bike_weekly_2016_to_2019,by=&quot;week&quot;) %&gt;%
+  filter(year&gt;2016) %&gt;% 
+  mutate(pct_change_weekly = (weekly_mean/weekly_mean_2016_2019-1)*100)
+  
+
+ggplot(data=bike_weekly_merged, aes(x=week)) +
+
+  geom_rect(aes(xmin = 13, xmax = 27, ymin = -Inf, ymax = Inf), fill=&quot;light gray&quot;) +
+  
+  geom_rect(aes(xmin = 39, xmax = 52, ymin = -Inf, ymax = Inf), fill=&quot;light gray&quot;) +
+
+  geom_rect(aes(xmin = 0, xmax = 13, ymin = -Inf, ymax = Inf), fill=&quot;white&quot;) +
+  
+  geom_rect(aes(xmin = 27, xmax = 39, ymin = -Inf, ymax = Inf), fill=&quot;white&quot;) +
+
+  geom_line(aes(y=pct_change_weekly)) +
+
+  geom_ribbon(aes(x=week,
+                   ymin = 0,
+                   ymax = pmax(0, pct_change_weekly)),
+                   alpha=0.1, fill=&#39;green&#39;) +
+  
+  geom_ribbon(aes(x=week,
+                   ymin = pct_change_weekly,
+                   ymax = pmax(0, pct_change_weekly)),
+               alpha=0.1, fill=&#39;red&#39;) +
+  
+  guides(linetype = &quot;none&quot;, fill = &quot;none&quot;) +
+  
+  labs(title = &quot;Weekly changes in Tfl bike rentals&quot;, subtitle = &quot;Change from weekly averages calculated between 2016-2019&quot;, x=&#39;week&#39;, y=&#39;&#39;, caption = &quot;Source: Tfl, London, Data Store&quot;) +
+  
+  theme(legend.position = &#39;none&#39;) +
+  facet_wrap(~year)+
+  scale_fill_manual(values=c(&quot;green&quot;, &quot;red&quot;), name=&quot;fill&quot;) +
+  geom_rug(aes(color=case_when(pct_change_weekly&gt;0~&quot;red&quot;,
+                               pct_change_weekly&lt;0~&quot;green&quot;))
+            ,sides=&quot;b&quot;) +
+  
+  scale_color_manual(values=c(&quot;red&quot;, &quot;green&quot;), name=&quot;color&quot;) +
+  
+  xlim(0,52) +
+  
+  NULL</code></pre>
+<p><img src="/blogs/homework2-group3_files/figure-html/weekly_change-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>Should you use the mean or the median to calculate your expected
+rentals? Why?</p>
+<blockquote>
+<p>The mean should be used as the bike rentals during a month follow a
+normal distribution and not a skewed distribution. As such, mean can
+be used for the calculation.</p>
+</blockquote>
+</div>
+<div id="challenge-2-share-of-renewable-energy-production-in-the-world" class="section level1">
+<h1>Challenge 2: Share of renewable energy production in the world</h1>
+<pre class="r"><code>technology &lt;- readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-07-19/technology.csv&#39;)
+
+#get all technologies
+labels &lt;- technology %&gt;% 
+  distinct(variable, label)
+
+# Get country names using &#39;countrycode&#39; package
+technology &lt;- technology %&gt;% 
+  filter(iso3c != &quot;XCD&quot;) %&gt;% 
+  mutate(iso3c = recode(iso3c, &quot;ROM&quot; = &quot;ROU&quot;),
+         country = countrycode(iso3c, origin = &quot;iso3c&quot;, destination = &quot;country.name&quot;),
+         country = case_when(
+           iso3c == &quot;ANT&quot; ~ &quot;Netherlands Antilles&quot;,
+           iso3c == &quot;CSK&quot; ~ &quot;Czechoslovakia&quot;,
+           iso3c == &quot;XKX&quot; ~ &quot;Kosovo&quot;,
+           TRUE           ~ country))
+
+#make smaller dataframe on energy
+energy &lt;- technology %&gt;% 
+  filter(category == &quot;Energy&quot;)
+
+# download CO2 per capita from World Bank using {wbstats} package
+# https://data.worldbank.org/indicator/EN.ATM.CO2E.PC
+co2_percap &lt;- wb_data(country = &quot;countries_only&quot;, 
+                      indicator = &quot;EN.ATM.CO2E.PC&quot;, 
+                      start_date = 1970, 
+                      end_date = 2022,
+                      return_wide=FALSE) %&gt;% 
+  filter(!is.na(value)) %&gt;% 
+  #drop unwanted variables
+  select(-c(unit, obs_status, footnote, last_updated))
+
+# get a list of countries and their characteristics
+# we just want to get the region a country is in and its income level
+countries &lt;-  wb_cachelist$countries %&gt;% 
+  select(iso3c,region,income_level)</code></pre>
+<p><img src="/blogs/homework2-group3_files/figure-html/min-max_renewables-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>As the % of energy generated by renewables goes up, do CO2 per capita
+emissions seem to go down?</p>
+<pre><code>  labs(title = &#39;Year: {frame_time}&#39;, 
+       x = &#39;% renewables&#39;, 
+       y = &#39;CO2 per cap&#39;) +
+  transition_time(year) +
+  ease_aes(&#39;linear&#39;)</code></pre>
+<pre class="r"><code>energy %&gt;% 
+  select(-label, -category, -group) %&gt;% 
+  pivot_wider(names_from = variable, values_from = value) %&gt;% 
+  mutate(prop_renewable = (
+    elec_hydro+elec_solar+elec_wind+elec_renew_other)/elecprod
+    ) %&gt;% 
+  select(iso3c, country, year, prop_renewable) %&gt;% 
+  left_join(countries, by=&quot;iso3c&quot;) %&gt;% 
+  left_join(
+    co2_percap %&gt;% select(iso3c, date, value), 
+    by=c(&quot;iso3c&quot; = &quot;iso3c&quot;, &quot;year&quot; = &quot;date&quot;)
+  ) %&gt;% 
+  na.omit() -&gt; all_elec_data
+
+all_elec_data %&gt;% 
+  ggplot(aes(x=prop_renewable, y=value)) +
+  geom_point(aes(color=income_level)) +
+  facet_wrap(~income_level) +
+  labs(
+    title=&quot;Year: {as.integer(frame_time)}&quot;,
+    x = &quot;% renewables&quot;,
+    y = &quot;CO2 per cap&quot;
+  ) + 
+  theme_minimal() +
+  theme(legend.position = &quot;none&quot;) +
+  transition_time(year) +
+  view_follow(fixed_y = TRUE) +
+  ease_aes(&#39;linear&#39;) -&gt; anim_plot
+
+animate(anim_plot)</code></pre>
+<p><img src="/blogs/homework2-group3_files/figure-html/unnamed-chunk-4-1.gif" style="display: block; margin: auto;" /></p>
+<blockquote>
+<p>Looking at this visualisation it seems there is no correlation between
+two variables. The CO2 per capita does not seem to go down as the
+percentage of renewables go up. For most of the countries the CO2 per
+capita stays the same, while % of renewables change. However, it is
+difficult to determine if the statement is true or false just looking
+at the animation without running proper tests.</p>
+</blockquote>
+</div>
+<div id="details" class="section level1">
+<h1>Details</h1>
+<ul>
+<li>Who did you collaborate with: Ishaan Khetan, Kathlyn Lee, Emilia
+Moskala, Juan Sanchez-Blanco, Sylvie Zheng, Jingyi Fang</li>
+<li>Approximately how much time did you spend on this problem set: 5
+hours</li>
+<li>What, if anything, gave you the most trouble: Challenge 2</li>
+</ul>
+<blockquote>
+<p>As a true test to yourself, do you understand the code you submitted
+and are you able to explain it to someone else?</p>
+<p>Yes</p>
+</blockquote>
+</div>
+<div id="rubric" class="section level1">
+<h1>Rubric</h1>
+<p>Check minus (1/5): Displays minimal effort. Doesn’t complete all
+components. Code is poorly written and not documented. Uses the same
+type of plot for each graph, or doesn’t use plots appropriate for the
+variables being analyzed.</p>
+<p>Check (3/5): Solid effort. Hits all the elements. No clear mistakes.
+Easy to follow (both the code and the output).</p>
+<p>Check plus (5/5): Finished all components of the assignment correctly
+and addressed both challenges. Code is well-documented (both
+self-documented and with additional comments as necessary). Used
+tidyverse, instead of base R. Graphs and tables are properly labelled.
+Analysis is clear and easy to follow, either because graphs are labeled
+clearly or you’ve written additional text to describe how you interpret
+the output.</p>
+</div>
