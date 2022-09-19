@@ -14,17 +14,20 @@ title: My hobbies
 ## Travel
 I've been to Singapore, Malaysia, Denmark, Germany, Belgium, Netherlands, Norway, France, Poland... (list adding)
 
-## Dance
 ```{r}
 knitr::include_graphics("/img/1.jpg",error=FALSE)
 ```
+
+## Dance
 I love jazz, zumba, kpop, folk and ballet dance
 
-## Cook
 ```{r}
 knitr::include_graphics("/img/cook.jpg",error=FALSE)
 ```
+
+## Cook
 I enjoy cooking and exploring different cuisine methods!
+
 
 
 
