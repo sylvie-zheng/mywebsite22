@@ -8,9 +8,9 @@ params:
   banner:
     buttonText: Get Started
     subtitle: Currently, I'm looking for business analyst/data scientist full-time jobs. Also, I'm passionate about transforming business by technology, devoting myself in women in business and women in tech!
-      A RESPONSIVE SITE TEMPLATE DESIGNED BY HTML5 UP
-      AND RELEASED UNDER THE CREATIVE COMMONS.
-    title: Hi, my name is Yiwei (Sylvie) Zheng, welcome to my personal website!
+      #A RESPONSIVE SITE TEMPLATE DESIGNED BY HTML5 UP
+      #AND RELEASED UNDER THE CREATIVE COMMONS.
+    title: Hi, my name is Yiwei (Sylvie) Zheng, welcome to my website!
   blog: {}
   contact:
     address:
@@ -34,7 +34,7 @@ params:
     text: Please visit [this page](/)
   favicon: favicon.ico
   footer:
-    copyright: Sylvie
+    copyright: Yiwei (Sylvie) Zheng
     enable: yes
     quicklinks:
       - alt: HTML5 UP
@@ -80,14 +80,14 @@ params:
   tiles:
     enable: yes
     showcase:
-      - image: backround_sunset.jpg
-        subtitle: I love sunsets
+      - image: 2.jpg
+        subtitle: Click here
         title: About me
         url: blogs/risk_return
       - image: lbs
         subtitle: London Business School
         title: My school
-        url: blogs/tempus
+        url: blogs/risk_return
       - image: pic03.jpg
         subtitle: Lorem Etiam Nullam
         title: Magna
