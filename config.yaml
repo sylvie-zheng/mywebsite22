@@ -83,7 +83,7 @@ params:
       - image: 2.jpg
         subtitle: Click here
         title: About me - professional data fanatic
-        url: blogs/risk_return
+        url: blogs/about-me
       - image: resume.jpg
         subtitle: Welcome to network through my e-mail or Linkedin
         title: My resume
