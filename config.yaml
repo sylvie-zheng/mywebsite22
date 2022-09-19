@@ -7,10 +7,10 @@ disqusShortname: ''
 params:
   banner:
     buttonText: Get Started
-    #subtitle: |-
-      #A RESPONSIVE SITE TEMPLATE DESIGNED BY HTML5 UP
-      #AND RELEASED UNDER THE CREATIVE COMMONS.
-    title: Hi, my name is Sylvie, welcome to my website!
+    subtitle: Currently, I'm looking for business analyst/data scientist full-time jobs. Also, I'm passionate about transforming business by technology, devoting myself in women in business and women in tech!
+      A RESPONSIVE SITE TEMPLATE DESIGNED BY HTML5 UP
+      AND RELEASED UNDER THE CREATIVE COMMONS.
+    title: Hi, my name is Yiwei (Sylvie) Zheng, welcome to my personal website!
   blog: {}
   contact:
     address:
@@ -24,7 +24,7 @@ params:
       - email: szheng.mam2023@london.edu
     enable: yes
     phone:
-      - phone: (86) 1375820XXXX
+      - phone: (86) 13758209493
         title: Phone
   custom_css: []
   custom_js: []
