@@ -80,30 +80,30 @@ params:
   tiles:
     enable: yes
     showcase:
-      - image: 2.jpg
+      - image: profile.jpg
         subtitle: Click here
-        title: About me
+        title: About me - professional data fanatic
         url: blogs/risk_return
-      - image: lbs
+      - image: lbs.jpg
         subtitle: London Business School
         title: My school
         url: blogs/risk_return
-      - image: pic03.jpg
-        subtitle: Lorem Etiam Nullam
-        title: Magna
+      - image: resume.jpg
+        subtitle: Welcome to network through my e-mail or Linkedin
+        title: My resume
         url: blogs/magna
-      - image: pic04.jpg
-        subtitle: Nisl Sed Aliquam
-        title: Ipsum
+      - image: rcoding.jpeg
+        subtitle: Immersed in coding and solving business problems
+        title: R project
         url: blogs/ipsum
-      - image: pic05.jpg
-        subtitle: Ipsum Dolor Sit Amet
-        title: Consequat
+      - image: myphoto2.jpg
+        subtitle: my hobbies
+        title: More about me
         url: blogs/ipsum
-      - image: pic06.jpg
-        subtitle: Feugiat Amet Tempus
-        title: Etiam
-        url: blogs/ipsum
+      - image: weibo.jpg
+        subtitle: Welcome to subscribe my channel
+        title: My Chinese official blog
+        url: https://weibo.com/u/6305718950
   two:
     buttonText: Get Started
     enable: yes
