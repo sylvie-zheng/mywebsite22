@@ -24,7 +24,7 @@ params:
       - email: szheng.mam2023@london.edu
     enable: yes
     phone:
-      - phone: (86) 13758209493
+      - phone: +86 13758209493
         title: Phone
   custom_css: []
   custom_js: []
