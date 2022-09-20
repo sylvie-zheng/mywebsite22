@@ -15,14 +15,14 @@ title: My hobbies
 I've been to Singapore, Malaysia, Denmark, Germany, Belgium, Netherlands, Norway, France, Poland... (list adding)
 
 ```{r}
-knitr::include_graphics("/img/1.jpg",error=FALSE)
+knitr::include_graphics("/img/1.jpg",error=FALSE,echo=FALSE)
 ```
 
 ## Dance
 I love jazz, zumba, kpop, folk and ballet dance
 
 ```{r}
-knitr::include_graphics("/img/cook.jpg",error=FALSE)
+knitr::include_graphics("/img/cook.jpg",error=FALSE,echo=FALSE)
 ```
 
 ## Cook
